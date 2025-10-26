@@ -1,0 +1,2021 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <title>Modern Mail Dashboard</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+      :root {
+        /* Light Theme Palette */
+        --bg-primary: #f4f7fe;
+        --bg-secondary: #ffffff;
+        --bg-tertiary: #f8fafc;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --border-primary: #e2e8f0;
+        --border-secondary: #f1f5f9;
+        --accent-primary: #2563eb;
+        --accent-primary-hover: #1d4ed8;
+        --accent-primary-soft: #eff6ff;
+        --accent-green: #16a34a;
+        --accent-green-soft: #f0fdf4;
+        --accent-red: #dc2626;
+        --accent-red-soft: #fef2f2;
+        --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      }
+
+      [data-theme="dark"] {
+        /* Dark Theme Palette */
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --border-primary: #334155;
+        --border-secondary: #475569;
+        --accent-primary: #3b82f6;
+        --accent-primary-hover: #60a5fa;
+        --accent-primary-soft: #1e293b;
+        --accent-green: #22c55e;
+        --accent-green-soft: #162a22;
+        --accent-red: #f87171;
+        --accent-red-soft: #2a1616;
+      }
+
+      /* Base Styles */
+      *, *::before, *::after { box-sizing: border-box; }
+      
+      body {
+        margin: 0;
+        font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial;
+        font-size: 14px;
+        line-height: 1.5;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        transition: background-color 0.2s, color 0.2s;
+      }
+
+      .toast-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--border-primary);
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.4s ease-in-out;
+      }
+      .toast-notification.show {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      .toast-notification.success { border-left: 4px solid var(--accent-green); }
+      .toast-notification.error { border-left: 4px solid var(--accent-red); }
+      .toast-notification.info { border-left: 4px solid var(--accent-primary); }
+      .toast-notification .icon { color: var(--accent-primary); }
+      .toast-notification.success .icon { color: var(--accent-green); }
+      .toast-notification.error .icon { color: var(--accent-red); }
+
+
+      /* Main Layout: Sidebar + Main Content */
+      .layout-wrapper {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        width: 240px;
+        flex-shrink: 0;
+        background-color: var(--bg-secondary);
+        border-right: 1px solid var(--border-primary);
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem 1rem;
+        transition: background-color 0.2s, border-color 0.2s;
+      }
+      
+      .sidebar .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 800;
+        font-size: 1.25rem;
+        letter-spacing: .2px;
+        color: var(--text-primary);
+        padding: 0 0.5rem 1.5rem 0.5rem;
+        border-bottom: 1px solid var(--border-primary);
+        margin-bottom: 1rem;
+      }
+      .brand .dot {
+        width: 12px; height: 12px; border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      }
+
+      .sidebar-nav {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .sidebar-nav a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: background-color 0.15s, color 0.15s;
+      }
+      .sidebar-nav a:hover {
+        background-color: var(--bg-tertiary);
+        color: var(--text-primary);
+      }
+      .sidebar-nav a.active {
+        background: var(--accent-primary-soft);
+        color: var(--accent-primary);
+        font-weight: 600;
+      }
+      .sidebar-nav a.active svg {
+        color: var(--accent-primary);
+      }
+      .sidebar-nav a svg {
+        width: 18px; height: 18px;
+        flex-shrink: 0;
+      }
+      
+      .main-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Header inside Main Content */
+      .header {
+        position: sticky; top: 0; z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 2rem;
+        background: var(--bg-secondary-translucent, rgba(255, 255, 255, 0.8));
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--border-primary);
+        min-height: 73px;
+      }
+      [data-theme="dark"] .header { --bg-secondary-translucent: rgba(30, 41, 59, 0.8); }
+
+      .page-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+      }
+      
+      .pill {
+        padding: 0.25rem 0.75rem;
+        border: 1px solid var(--border-primary);
+        border-radius: 999px;
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+        font-size: 12px;
+        font-weight: 500;
+      }
+      
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border-primary);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      }
+      .btn:disabled { cursor: not-allowed; opacity: 0.7; }
+      .btn:hover { background: var(--bg-tertiary); }
+      .btn.primary {
+        background: var(--accent-primary);
+        border-color: var(--accent-primary);
+        color: #ffffff;
+      }
+      .btn.primary:hover { background: var(--accent-primary-hover); }
+      .btn.danger {
+        border-color: var(--accent-red);
+        background: var(--accent-red-soft);
+        color: var(--accent-red);
+      }
+      .btn.danger:hover{ background: var(--accent-red); color: white; }
+
+      .content-area {
+        padding: 2rem;
+      }
+      
+      /* Component Styles */
+      .card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-primary);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+      }
+      
+      .row { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
+      .col { display: flex; flex-direction: column; gap: 0.5rem; }
+      label { font-weight: 500; color: var(--text-secondary); }
+      
+      input, select, datalist, textarea {
+        padding: 0.625rem 0.75rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border-primary);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        outline: none;
+        min-width: 18px;
+        font-family: inherit;
+        font-size: 14px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      input::placeholder, textarea::placeholder { color: var(--text-secondary); opacity: 0.7; }
+      input:focus, select:focus, textarea:focus {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 3px var(--accent-primary-soft);
+      }
+      
+      textarea[readonly] {
+        background-color: var(--bg-tertiary);
+        cursor: default;
+        color: var(--text-secondary);
+      }
+      textarea[readonly]:focus {
+        box-shadow: none;
+        border-color: var(--border-primary);
+      }
+      
+      /* Table Styles */
+      .table-wrap {
+        overflow: auto;
+        border-radius: 0.75rem;
+        border: 1px solid var(--border-primary);
+        background: var(--bg-secondary);
+      }
+      table {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+      }
+      tbody td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-secondary);
+        color: var(--text-primary);
+      }
+      tbody tr:last-child td { border-bottom: none; }
+      tbody tr:hover { background: var(--bg-tertiary); }
+
+      /* --- IMPROVED STICKY TABLE FIX --- */
+      thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2; /* Sits above the body but below the top-left corner */
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+        font-size: 12px;
+        text-align: left;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-primary);
+        box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1); 
+      }
+      thead th:first-child {
+        position: sticky;
+        left: 0;
+        top: 0;
+        z-index: 4; /* Highest z-index for the corner */
+        background: var(--bg-tertiary);
+        min-width: 280px; /* Give first column more space */
+      }
+      tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: var(--bg-secondary); /* Match the default row background */
+        z-index: 1; /* Sits above other cells in its row */
+        box-shadow: 2px 0 2px -1px rgba(0, 0, 0, 0.1); 
+        min-width: 280px;
+      }
+      tbody tr:hover td:first-child {
+        background: var(--bg-tertiary);
+      }
+      /* --- END STICKY TABLE FIX --- */
+      
+      /* Stat Cards */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.5rem;
+      }
+      .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+      }
+      .stat-card .icon-wrap {
+        flex-shrink: 0;
+        padding: 0.75rem;
+        border-radius: 50%;
+        background: var(--accent-primary-soft);
+        color: var(--accent-primary);
+        display: grid;
+        place-items: center;
+      }
+      .stat-card .icon-wrap svg { width: 24px; height: 24px; }
+      .stat-card .stat-info {
+        min-width: 0;
+      }
+      .stat-card .stat-label {
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+        font-size: 13px;
+      }
+      .stat-card .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Misc */
+      .hidden { display: none !important; }
+      .sp { flex: 1; }
+      .ok { color: var(--accent-green); font-weight: 700; }
+      .bad { color: var(--accent-red); font-weight: 700; }
+      .note { font-size: 12px; color: var(--text-secondary); }
+      .chip {
+        display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.75rem; border-radius: 999px;
+        background: var(--accent-primary-soft); border: 1px solid transparent;
+        font-size: 12px; font-weight: 500; color: var(--accent-primary);
+      }
+      .chip.ok { background: var(--accent-green-soft); color: var(--accent-green); }
+      .chip.bad { background: var(--accent-red-soft); color: var(--accent-red); }
+
+      /* Role Chooser Screen */
+      .center-screen {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+      .chooser {
+        max-width: 900px;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+      }
+      .role-card {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        text-align: center;
+        align-items: center;
+      }
+      .role-card .icon-wrap {
+        width: 64px; height: 64px;
+        background: var(--accent-primary-soft);
+        color: var(--accent-primary);
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+      }
+      .role-card .icon-wrap svg { width: 32px; height: 32px; }
+      .role-card .title { font-size: 1.25rem; font-weight: 700; }
+      .role-card .muted { color: var(--text-secondary); max-width: 300px; }
+
+      canvas { border-radius: 0.75rem; border: 1px solid var(--border-primary); }
+      
+      #tab-excel .table-wrap, #tab-display .table-wrap, #tab-display-by-date .table-wrap {
+        max-height: 65vh;
+        max-width: 1208px;
+      }
+  
+      /* Fullscreen styles */
+      #dl_fsRoot:fullscreen {
+        background-color: var(--bg-secondary);
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+      }
+      #dl_fsRoot:fullscreen .table-wrap {
+        flex-grow: 1;
+        height: 0;
+        max-height: none;
+      }
+      
+      #excel_fsRoot:fullscreen {
+        background-color: var(--bg-secondary);
+        padding: 1rem;
+        height: 100%;
+        width: 100%;
+        border-radius: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      #excel_fsRoot:fullscreen .table-wrap {
+        flex-grow: 1;
+        height: 0;
+        max-height: none;
+        overflow: auto; /* Ensure scrolling is enabled */
+      }
+
+      .fs-context-header {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+        padding-left: 0.5rem;
+      }
+      :fullscreen .fs-context-header {
+        display: block !important;
+      }
+      #dl_fsRoot:fullscreen .row:first-of-type {
+        display: none;
+      }
+      
+      /* Modal Styles */
+      .modal-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+        pointer-events: none;
+      }
+      .modal-overlay:not(.hidden) {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .modal-content {
+        max-width: 400px;
+        width: 100%;
+        transform: scale(0.95);
+        transition: transform 0.2s ease-in-out;
+      }
+      .modal-overlay:not(.hidden) .modal-content {
+        transform: scale(1);
+      }
+      
+    </style>
+</head>
+<body>
+
+<div id="adminSecretModal" class="modal-overlay hidden">
+  <div class="modal-content card">
+    <h3 style="margin-top:0; font-size: 1.25rem;">Admin Access</h3>
+    <p class="note" style="margin-bottom: 1.5rem;">Please enter the admin secret key to proceed.</p>
+    <div class="col" style="width:100%;">
+      <label for="adminSecretInput">Secret Key</label>
+      <div style="position: relative; display: flex; align-items: center;">
+        <input type="password" id="adminSecretInput" placeholder="Enter secret..." style="width: 100%; padding-right: 3.5rem;">
+        <button id="toggleSecretVisibility" class="btn" style="position: absolute; right: 5px; background: transparent; border: none; padding: 0.5rem; color: var(--text-secondary);">
+          <i data-lucide="eye"></i>
+        </button>
+      </div>
+       <div id="adminLoginError" class="note bad" style="margin-top: 0.5rem; display: none; font-size: 13px;"></div>
+    </div>
+    <div class="row" style="margin-top: 1.5rem; justify-content: flex-end;">
+      <button id="btnCancelAdminLogin" class="btn">Cancel</button>
+      <button id="btnConfirmAdminLogin" class="btn primary">Login</button>
+    </div>
+  </div>
+</div>
+
+<div id="root-container">
+
+    <div id="roleScreen" class="center-screen">
+      <div class="chooser">
+        <div class="card role-card">
+          <div class="icon-wrap"><i data-lucide="user"></i></div>
+          <div>
+            <div class="title">Login as User</div>
+            <p class="muted">Viewer mode — fetch mails and view Excel data. No administrative controls.</p>
+          </div>
+          <button id="btnLoginUser" class="btn primary">Continue as User</button>
+        </div>
+        <div class="card role-card">
+          <div class="icon-wrap"><i data-lucide="shield-check"></i></div>
+          <div>
+            <div class="title">Login as Admin</div>
+            <p class="muted">Manage clients, regions, and senders. Requires a secret key for access.</p>
+          </div>
+          <button id="btnLoginAdmin" class="btn">Login as Admin</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="app" class="layout-wrapper hidden">
+      <nav class="sidebar">
+        <div class="brand"><span class="dot"></span> MailDash</div>
+        <ul class="sidebar-nav">
+          <li><a href="#" class="tab active" data-tab="overview"><i data-lucide="layout-dashboard"></i><span>Overview</span></a></li>
+          <li><a href="#" class="tab" data-tab="mails"><i data-lucide="mail"></i><span>Recent Mails</span></a></li>
+          <li><a href="#" class="tab" data-tab="excel"><i data-lucide="table"></i><span>Excel Viewer</span></a></li>
+          <li><a href="#" class="tab" data-tab="stats" id="statsTab"><i data-lucide="bar-chart-3"></i><span>Stats</span></a></li>
+          <li><a href="#" class="tab" data-tab="display" id="displayTab"><i data-lucide="monitor-play"></i><span>Live Display</span></a></li>
+          <li><a href="#" class="tab" data-tab="display-by-date"><i data-lucide="calendar-clock"></i><span>Snapshot by Date</span></a></li>
+          <li class="hidden"><a href="#" class="tab" data-tab="admin" id="adminTab"><i data-lucide="sliders-horizontal"></i><span>Admin Panel</span></a></li>
+        </ul>
+      </nav>
+      
+      <main class="main-content">
+        <header class="header">
+          <h1 class="page-title" id="page-title">Overview</h1>
+          <div class="sp"></div>
+          <span id="roleBadge" class="pill">Role: —</span>
+          <button id="btnSwitchRole" class="btn"><i data-lucide="users"></i><span>Switch Role</span></button>
+          <button id="btnAdminLogout" class="btn danger hidden"><i data-lucide="log-out"></i><span>Admin Logout</span></button>
+          <button id="theme-toggle" class="btn"><i data-lucide="sun"></i></button>
+        </header>
+
+        <div class="content-area">
+          <div class="stats-grid" style="margin-bottom: 2rem;">
+            <div class="card stat-card">
+              <div class="icon-wrap"><i data-lucide="sheets"></i></div>
+              <div class="stat-info">
+                <div class="stat-label">Sheets Found</div>
+                <div class="stat-value" id="stSheets">—</div>
+              </div>
+            </div>
+            <div class="card stat-card">
+              <div class="icon-wrap"><i data-lucide="history"></i></div>
+              <div class="stat-info">
+                <div class="stat-label">Last Action</div>
+                <div class="stat-value" id="stLast">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cards">
+            <section class="card" id="tab-overview">
+              <h2 style="margin-top:0; font-size: 1.25rem;">Fetch & Preview</h2>
+              <div class="row" style="margin-top:1.5rem">
+                <div class="col"><label for="subject">Subject keyword</label><input id="subject" placeholder="e.g. healthcheck" value="healthcheck" /></div>
+                <div class="col"><label for="client">Client</label><input list="clients" id="client" placeholder="Select/Type…" /><datalist id="clients"></datalist></div>
+                
+                <div class="col hidden" id="col_region_overview">
+                    <label for="region">Region</label>
+                    <input list="regions" id="region" placeholder="Select/Type…" />
+                    <datalist id="regions"></datalist>
+                    <div class="note" id="note_regionless_overview" style="display:none;">This client has no regions.</div>
+                </div>
+
+                <div class="col"><label for="hours">Hours window</label><select id="hours"><option value="24">24</option><option value="72">72</option><option value="240" selected>240</option><option value="720">720</option></select></div>
+                <div class="col"><button id="btnFetch" class="btn primary"><i data-lucide="search"></i><span>Fetch & Preview</span></button></div>
+              </div>
+              <div class="row" style="margin-top:1rem; align-items: center;">
+                <span id="fetchStatus" class="chip">Status: Idle</span>
+                <span id="fetchMsg" class="note"></span>
+              </div>
+            </section>
+
+            <section class="card hidden" id="tab-mails">
+              <div class="row" style="justify-content:space-between; align-items:center; margin-bottom: 1.5rem; align-items: center;">
+                <h2 style="margin:0; font-size: 1.25rem;">Recent Mails</h2>
+                <div class="row" style="align-items: center;">
+                  <label style="font-weight: 500; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    <input id="autoMailChk" type="checkbox" style="width:16px; height:16px; margin:0;">
+                    <span>Auto-refresh</span>
+                  </label>
+                  
+                  <select id="senderSel" title="Filter by sender (optional)"><option value="">All allowed senders</option></select>
+                  <select id="mailHours" title="Lookback window (hours)"><option value="24">24h</option><option value="72">72h</option><option value="240" selected>240h</option><option value="720">720h</option></select>
+                  <select id="limit"><option value="10">Top 10</option><option value="20">Top 20</option><option value="50">Top 50</option></select>
+
+                  <button id="btnList" class="btn"><i data-lucide="refresh-cw"></i><span>Refresh</span></button>
+                </div>
+              </div>
+              <div class="table-wrap"><table ><thead><tr><th>Subject</th><th>From</th><th>Received</th><th>Attachments</th></tr></thead><tbody id="mailBody"></tbody></table></div>
+            </section>
+
+            <section class="card hidden" id="tab-excel">
+                <h2 style="margin-top:0; font-size: 1.25rem;">Excel Viewer</h2>
+                <div class="row" style="align-items: center; margin-top:1.5rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-primary);">
+                    <div class="col"><label>Client</label><input list="clients" id="excel_client" placeholder="Select client..." /></div>
+                    <div class="col hidden" id="col_region_excel">
+                        <label>Region</label>
+                        <input list="regions" id="excel_region" placeholder="Select region..." />
+                        <div class="note" id="note_regionless_excel" style="display:none;">Client has no regions.</div>
+                    </div>
+                    <div class="col">
+                        <label>Workspace / Sheet</label>
+                        <select id="excel_workspace" style="min-width: 220px;">
+                            <option value="">Select client first...</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label>&nbsp;</label> <div style="display: flex; gap: 0.5rem;">
+                            <button id="btnFetchSheets" class="btn primary"><i data-lucide="search"></i><span>Find Sheets</span></button>
+                            <button id="btnLoadSheetData" class="btn"><i data-lucide="table"></i><span>Load Sheet Data</span></button>
+                            <button id="excel_btnFullscreen" class="btn"><i data-lucide="maximize"></i><span>Enter Fullscreen</span></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="excel_fsRoot">
+                  <div id="excel_fs_context" class="fs-context-header hidden"></div>
+                  <div class="table-wrap">
+                      <table>
+                          <thead id="gridHead"></thead>
+                          <tbody id="gridBody"></tbody>
+                      </table>
+                  </div>
+                </div>
+            </section>
+            
+            <section class="card hidden" id="tab-stats">
+              <h2 style="margin-top:0; font-size: 1.25rem;">Statistics</h2>
+              <div class="row" style="margin-top:1.5rem; gap: 1.5rem; align-items: flex-end;">
+                <div class="col"><label for="st_client">Client</label><input list="clients" id="st_client" placeholder="e.g. Citi" /></div>
+
+                <div class="col hidden" id="col_region_stats">
+                    <label for="st_region">Region</label>
+                    <input list="regions" id="st_region" placeholder="e.g. EMEA" />
+                    <div class="note" id="note_regionless_stats" style="display:none;">Client has no regions.</div>
+                </div>
+                
+                <div class="col">
+                    <label>Workspace</label>
+                    <div style="display: flex; align-items: flex-end; gap: 0.5rem;">
+                        <select id="st_workspace" style="min-width: 200px;"><option value="">Select client first...</option></select>
+                        <button id="btnFindWorkspaces_st" class="btn"><i data-lucide="search"></i></button>
+                    </div>
+                </div>
+
+                <div class="col"><label for="st_basis">Basis</label><select id="st_basis"><option value="days" selected>Days</option><option value="months">Months</option></select></div>
+                <div class="col"><label for="st_n"><span id="st_n_label"># Days</span></label><select id="st_n"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option></select></div>
+                <div class="col hidden"><label for="st_anchor">Anchor</label><select id="st_anchor"><option value="latest" selected>Latest in DB</option><option value="now">Now (UTC)</option></select></div>
+                <div class="col" style="flex-grow: 1; min-width:260px"><label for="st_parameter">Parameter</label><select id="st_parameter"><option value="">All parameters (pick one to focus)</option></select></div>
+                
+                <div class="col">
+                  <button id="st_btnLoad" class="btn primary">Load Stats</button>
+                </div>
+              </div>
+
+
+              <div class="row" style="margin-top:1.5rem; gap:1.5rem;">
+                <div class="pill">Overall Avg: <b id="st_avg" style="margin-left: 4px;">—</b></div>
+                <div class="pill">Max: <b id="st_max" style="margin-left: 4px;">—</b></div>
+                <div class="pill">Min: <b id="st_min" style="margin-left: 4px;">—</b></div>
+                <div class="pill">Bars: <b id="st_bars" style="margin-left: 4px;">—</b></div>
+                <div class="pill">Range: <b id="st_range" style="margin-left: 4px;">—</b></div>
+              </div>
+              <div style="margin-top:1.5rem"><canvas id="st_chart" height="120"></canvas><div class="note" id="st_empty" style="margin-top:8px;display:none;">No data for selected range.</div></div>
+              <div class="col" style="margin-top:1.5rem"><label>Raw (selected parameter)</label><pre id="st_raw" class="note" style="background:var(--bg-tertiary); border:1px solid var(--border-primary); padding:1rem; border-radius:0.5rem; max-height:220px; overflow:auto"></pre></div>
+            </section>
+
+            <section class="card hidden" id="tab-display">
+
+              <div class="row" style="justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+                <h2 style="margin:0; font-size: 1.25rem;">Live Display (latest snapshot)</h2>
+                <div class="row" style="align-items: center;">
+                  <span id="autoCycleStatus" class="chip">Stopped</span>
+                  <button id="dl_btnFullscreen" class="btn"><i data-lucide="maximize"></i><span>Enter Fullscreen</span></button>
+                </div>
+              </div>
+              <div id="dl_fsRoot">
+                <div id="dl_fs_context" class="fs-context-header hidden"></div>
+                <div class="row" style="gap:1.5rem; margin-bottom: 1.5rem;">
+                  <div class="pill">Client: <b id="dl_client_pill" style="margin-left: 4px;">—</b></div>
+                  <div class="pill">Region: <b id="dl_region_pill" style="margin-left: 4px;">—</b></div>
+                  <div class="pill">Workspace: <b id="dl_workspace_pill" style="margin-left: 4px;">—</b></div>
+                  <div class="pill">Latest ts: <b id="dl_latest" style="margin-left: 4px;">—</b></div>
+                  <div class="pill">Items: <b id="dl_count" style="margin-left: 4px;">—</b></div>
+                </div>
+                <div class="table-wrap"><table><thead><tr><th style="min-width:260px">Parameter</th><th style="min-width:120px">Value</th><th style="min-width:220px">ts_utc</th><th style="min-width:160px">Sheet</th></tr></thead><tbody id="dl_body"><tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No data</td></tr></tbody></table></div>
+              </div>
+
+              <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-tertiary); border-radius: 0.5rem; border: 1px solid var(--border-primary);">
+                  <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1rem;">Auto-Cycle Configuration</h3>
+                  
+                  <div class="row" style="margin-bottom: 1rem;">
+                    <div class="col hidden">
+                      <label for="autoCycleEnabled">Enable Auto-Cycle</label>
+                      <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="autoCycleEnabled" style="width: 16px; height: 16px; margin: 0;">
+                        <span>Auto refresh through all combinations</span>
+                      </label>
+                    </div>
+                    
+                    <div class="col hidden">
+                      <label for="autoCycleInterval">Interval (minutes)</label>
+                      <input type="number" id="autoCycleInterval" value="1" min="1" max="60" style="width: 100px;">
+                    </div>
+                    
+                    <div class="col hidden">
+                      <label for="autoCycleWorkspaceFilter">Workspace Filter</label>
+                      <select id="autoCycleWorkspaceFilter">
+                        <option value="">All Workspaces</option>
+                        <!-- <option value="LIVE">LIVE only</option>
+                        <option value="FED">FED only</option>
+                        <option value="MIG">MIG only</option> -->
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="col" style="margin-bottom: 1rem;">
+                      <label>Current Combinations</label>
+                      <textarea id="autoCycleCombinations" readonly placeholder='Loading combinations from database...' rows="8" style="width: 100%; font-family: monospace; font-size: 12px; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border-primary); color: var(--text-primary); resize: vertical;"></textarea>
+                      <div class="note" style="margin-top: 0.5rem;">
+    <strong>Data-driven:</strong> Combinations are generated from the unique `(Client, Region, Workspace)` triplets 
+    that have been found in your database. A new client will appear here after its first data file is ingested.
+</div>
+                  </div>
+
+                  <div class="row">
+                      <button id="btnRefreshCombinations" class="btn primary">
+                          <i data-lucide="refresh-cw"></i><span>Refresh from Database</span>
+                      </button>
+                      <button id="btnTestCurrent" class="btn hidden">
+                          <i data-lucide="play"></i><span>Test Current</span>
+                      </button>
+                      
+                  </div>
+              </div>
+            </section>
+
+            <section class="card hidden" id="tab-display-by-date">
+              <div class="row" style="justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+                <h2 style="margin:0; font-size: 1.25rem;">Snapshot at Date + Time</h2>
+                 <div class="row"><button id="pt_btnLoad" class="btn primary">Load Snapshot</button></div>
+              </div>
+              <div class="row" style="margin-top: 1.5rem;">
+                  <div class="col"><label>Client</label><input list="clients" id="pt_client" placeholder="e.g. Citi" /></div>
+                  
+                  <div class="col hidden" id="col_region_pt">
+                    <label>Region</label>
+                    <input list="regions" id="pt_region" placeholder="e.g. EMEA" />
+                    <div class="note" id="note_regionless_pt" style="display:none;">Client has no regions.</div>
+                  </div>
+
+                  <div class="col">
+                    <label>Workspace</label>
+                     <div style="display: flex; align-items: flex-end; gap: 0.5rem;">
+                        <select id="pt_workspace" style="min-width: 200px;"><option value="">Select client first...</option></select>
+                        <button id="btnFindWorkspaces_pt" class="btn"><i data-lucide="search"></i></button>
+                    </div>
+                  </div>
+                  <div class="col"><label for="pt_date">Date (UTC)</label><input type="date" id="pt_date" /></div>
+                  <div class="col"><label for="pt_time">Time Slot (UTC)</label>
+                      <select id="pt_time" title="Allowed: 01:30 / 09:30 / 17:30">
+                          <option value="01:30" selected>01:30</option>
+                          <option value="09:30">09:30</option>
+                          <option value="17:30">17:30</option>
+                      </select>
+                  </div>
+                  <div class="col"><label>Sheet (optional)</label><input id="pt_sheet" placeholder="sheet name (optional)" /></div>
+              </div>
+              <div id="pt_resultsRoot" style="margin-top: 1.5rem;">
+                   <div class="row" style="gap:1.5rem; margin-bottom: 1.5rem;">
+                    <div class="pill">Timestamp: <b id="pt_ts" style="margin-left: 4px;">—</b></div>
+                    <div class="pill">Items: <b id="pt_count" style="margin-left: 4px;">—</b></div>
+                    <div class="pill">Status: <b id="pt_status" style="margin-left: 4px;">Idle</b></div>
+                   </div>
+                   <div class="table-wrap"><table><thead><tr><th style="min-width:260px">Parameter</th><th style="min-width:120px">Value</th><th style="min-width:220px">ts_utc</th><th style="min-width:160px">Sheet</th></tr></thead><tbody id="pt_body"><tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Select criteria and load data</td></tr></tbody></table></div>
+              </div>
+            </section>
+            
+            <section class="card hidden" id="tab-admin">
+                <h2 style="margin-top:0; font-size: 1.25rem;">Admin • Clients, Regions & Senders</h2>
+            
+                <div style="margin-top:1.5rem">
+                    <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">Client Management</h3>
+                    <div class="row">
+                        <div class="col"><label>Client</label><input list="clients" id="admClient" placeholder="e.g. Citi" /></div>
+                        <div class="col"><label>Client Sender (if no regions)</label><input id="admClientSender" placeholder="reports@client.com" /></div>
+                        <div class="col"><button id="btnAddClient" class="btn primary">+ Add/Update Client</button></div>
+                        <div class="col"><button id="btnDelClient" class="btn danger">− Delete Client</button></div>
+                    </div>
+                </div>
+            
+                <div style="margin-top:1.5rem">
+                    <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">Region Management (for selected client)</h3>
+                    <div class="row">
+                        <div class="col"><label>Region</label><input list="regions" id="admRegion" placeholder="e.g. EMEA" /></div>
+                        <div class="col"><label>Region Sender</label><input id="admRegionSender" placeholder="emea.reports@client.com" /></div>
+                        <div class="col"><button id="btnAddRegion" class="btn primary">+ Add Region</button></div>
+                        <div class="col"><button id="btnDelRegion" class="btn danger">− Delete Region</button></div>
+                        <div class="col"><button id="btnReload" class="btn">↻ Reload</button></div>
+                    </div>
+                </div>
+            
+                <div class="col" style="margin-top:1.5rem;">
+                    <label>Store Preview</label>
+                    <pre id="storeView" class="note" style="background:var(--bg-tertiary); border:1px solid var(--border-primary); padding:1rem; border-radius:0.5rem; max-height:180px; overflow:auto"></pre>
+                </div>
+                
+                <div style="margin-top:2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-primary);">
+                    <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">Database Maintenance</h3>
+                    <div class="row">
+                        <div class="col">
+                            <label for="admCleanupMonths">Older than (months)</label>
+                            <input type="number" id="admCleanupMonths" value="6" min="1" max="120" style="width: 150px;" />
+                        </div>
+                        <div class="col">
+                            <button id="btnCleanupData" class="btn danger">
+                                <i data-lucide="trash-2"></i><span>Cleanup Old Data</span>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="note" style="margin-top: 0.5rem;">
+                        This will permanently delete timeseries data from the database older than the specified number of months. This action cannot be undone.
+                    </p>
+                </div>
+            </section>
+
+          </div>
+        </div>
+      </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+<script>
+  // ---------- HELPERS ----------
+  const $ = (id) => document.getElementById(id);
+
+  function esc(s) { return String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+  
+  function clearInputs(ids) {
+    ids.forEach(id => {
+      const el = $(id);
+      if (el) el.value = '';
+    });
+  }
+  
+  async function jfetch(url, opts = {}) {
+    const r = await fetch(url, Object.assign({ credentials: 'include' }, opts));
+    const t = await r.text();
+    if (!r.ok) {
+        let detail = t.slice(0, 500);
+        try {
+            const parsed = JSON.parse(t);
+            detail = parsed.reason || parsed.detail || detail;
+        } catch {}
+        throw new Error(r.status+' '+r.statusText+' — '+detail);
+    }
+    return (r.headers.get('content-type') || '').includes('application/json') ? (t ? JSON.parse(t) : {}) : t;
+  }
+
+  function setStat(id, val) { $(id).textContent = val; }
+  function show(el, yes) { el.classList.toggle('hidden', !yes); }
+
+  function showToast(message, type = 'info', duration = 5000) {
+      const toast = document.createElement('div');
+      toast.className = `toast-notification ${type}`;
+      const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info';
+      toast.innerHTML = `<div class="icon"><i data-lucide="${icon}"></i></div><div>${esc(message)}</div>`;
+      document.body.appendChild(toast);
+      lucide.createIcons();
+      setTimeout(() => toast.classList.add('show'), 10);
+      setTimeout(() => {
+          toast.classList.remove('show');
+          toast.addEventListener('transitionend', () => toast.remove());
+      }, duration);
+  }
+
+  function connectToNotifications() {
+      const evtSource = new EventSource('/api/notifications/stream');
+      evtSource.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          console.log("Notification received:", data);
+          if (data.event === 'new_mail_found') {
+              showToast(`New mail appeared: "${data.subject}"`, 'info');
+          } else if (data.event === 'ingest_success') {
+              showToast(`Mail fetched! Ingested ${data.rows} rows from ${data.file}`, 'success');
+              // Maybe refresh excel viewer if client/region match? For now, manual.
+          }
+      };
+      evtSource.onerror = function(err) {
+          console.error("EventSource failed:", err);
+          evtSource.close();
+          setTimeout(connectToNotifications, 5000);
+      };
+  }
+
+  // ---------- TABS & THEME ----------
+  function activateTab(key) {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    const tabBtn = document.querySelector(`.tab[data-tab="${key}"]`);
+    if (tabBtn) {
+      tabBtn.classList.add('active');
+      const title = tabBtn.querySelector('span').textContent;
+      $('page-title').textContent = title;
+    }
+    ['overview', 'mails', 'excel', 'stats', 'display', 'display-by-date', 'admin'].forEach(k =>
+      $( `tab-${k}` )?.classList.toggle('hidden', k !== key)
+    );
+
+    const statsGrid = document.querySelector('.stats-grid');
+    if (statsGrid) {
+        statsGrid.classList.toggle('hidden', key === 'display');
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('.tab'); if (!b) return;
+    e.preventDefault();
+    const key = b.dataset.tab; activateTab(key);
+    if (key === 'stats') { ST_tryPrefill(); }
+    if (key === 'display') { 
+      // DL_prefillFromOverview(); 
+      initializeAutoCycle();
+    }
+    if (key === 'display-by-date') { PT_prefillFromDisplay(); }
+    if (key === 'mails') { loadAllowedSendersIntoDropdown(); }
+  });
+
+  const themeToggle = document.getElementById('theme-toggle');
+  const htmlEl = document.documentElement;
+  themeToggle.addEventListener('click', () => {
+    const newTheme = htmlEl.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    htmlEl.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+    if(ST_chart) { ST_loadStats(); }
+  });
+
+  function updateThemeIcon(theme) {
+    themeToggle.innerHTML = theme === 'light' ? '<i data-lucide="moon"></i>' : '<i data-lucide="sun"></i>';
+    lucide.createIcons();
+  }
+  
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  htmlEl.setAttribute('data-theme', savedTheme);
+  updateThemeIcon(savedTheme);
+
+  // ---------- ROLE HANDLING ----------
+  let CURRENT_ROLE = null;
+  function setRoleUI(role) {
+    CURRENT_ROLE = role;
+    $('roleBadge').textContent = 'Role: ' + role;
+    show($('adminTab').parentElement, role === 'admin');
+    if (role !== 'admin' && document.querySelector('.tab.active')?.dataset.tab === 'admin') {
+      activateTab('overview');
+    }
+    show($('btnAdminLogout'), role === 'admin');
+  }
+
+  async function enterViewer() {
+    setRoleUI('viewer');
+    show($('roleScreen'), false); show($('app'), true);
+    lucide.createIcons(); await bootData();
+  }
+
+  async function switchRole() {
+    if (CURRENT_ROLE === 'admin') { try { await jfetch('/auth/admin/logout', { method: 'POST' }); } catch { } }
+    show($('app'), false); show($('roleScreen'), true);
+    $('roleBadge').textContent = 'Role: —'; CURRENT_ROLE = null;
+  }
+  
+  // --- Admin Login Modal Logic ---
+  const adminModal = $('adminSecretModal');
+  const adminInput = $('adminSecretInput');
+  const adminError = $('adminLoginError');
+
+  function showAdminModal() {
+    adminInput.value = '';
+    adminError.style.display = 'none';
+    adminInput.type = 'password';
+    
+    $('toggleSecretVisibility').innerHTML = '<i data-lucide="eye"></i>';
+    lucide.createIcons();
+
+    adminModal.classList.remove('hidden');
+    adminInput.focus();
+  }
+
+  function hideAdminModal() {
+    adminModal.classList.add('hidden');
+  }
+
+  async function attemptAdminLogin() {
+    const secret = adminInput.value.trim();
+    if (!secret) {
+      adminError.textContent = 'Secret key cannot be empty.';
+      adminError.style.display = 'block';
+      return;
+    }
+    
+    const loginBtn = $('btnConfirmAdminLogin');
+    const originalHTML = loginBtn.innerHTML;
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = `<span>Logging in...</span>`;
+    adminError.style.display = 'none';
+
+    try {
+      await jfetch('/auth/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ secret }) });
+      hideAdminModal();
+      setRoleUI('admin');
+      show($('roleScreen'), false); show($('app'), true);
+      lucide.createIcons(); await bootData(); await refreshStore();
+    } catch (e) {
+      adminError.textContent = 'Login failed: ' + e.message;
+      adminError.style.display = 'block';
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = originalHTML;
+    }
+  }
+
+  // --- Role & Modal Event Listeners ---
+  $('btnLoginUser').onclick = enterViewer;
+  $('btnLoginAdmin').onclick = showAdminModal;
+  $('btnSwitchRole').onclick = switchRole;
+  $('btnAdminLogout').onclick = async () => { await jfetch('/auth/admin/logout', { method: 'POST' }); switchRole(); };
+  $('btnCancelAdminLogin').onclick = hideAdminModal;
+  $('btnConfirmAdminLogin').onclick = attemptAdminLogin;
+  
+  adminInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); attemptAdminLogin(); }
+  });
+  
+  $('toggleSecretVisibility').addEventListener('click', () => {
+    const button = $('toggleSecretVisibility');
+    if (adminInput.type === 'password') {
+      adminInput.type = 'text';
+      button.innerHTML = '<i data-lucide="eye-off"></i>';
+    } else {
+      adminInput.type = 'password';
+      button.innerHTML = '<i data-lucide="eye"></i>';
+    }
+    lucide.createIcons();
+    adminInput.focus();
+  });
+
+
+  // ---------- CLIENTS/REGIONS DYNAMIC VISIBILITY (MERGED) ----------
+  const CLIENT_REGIONS = new Map();
+
+  function setRegionVisibility(where, hasRegions){
+    const col = {overview:'col_region_overview', stats:'col_region_stats', display:'col_region_display', pt:'col_region_pt', excel: 'col_region_excel'}[where];
+    const note = {overview:'note_regionless_overview', stats:'note_regionless_stats', display:'note_regionless_display', pt:'note_regionless_pt', excel: 'note_regionless_excel'}[where];
+    if (!$(col) || !$(note)) return;
+    $(col).classList.toggle('hidden', !hasRegions);
+    $(note).style.display = hasRegions ? 'none' : 'block';
+  }
+
+  async function loadClients(){
+    const js = await jfetch('/api/options/clients'); const list = js.clients||[];
+    const dl = $('clients'); dl.innerHTML='';
+    list.forEach(c=>{ const o=document.createElement('option'); o.value=c; dl.appendChild(o); });
+    if (list[0]) await loadRegionsFor(list[0], true);
+    if (!$('st_client').value && list[0]) $('st_client').value = list[0];
+    updateAllRegionVisibility(($('client').value||'').trim() || list[0] || '');
+  }
+
+  async function loadRegionsFor(c, silent=false){
+  if(!c){
+    $('regions').innerHTML=''; CLIENT_REGIONS.set('', []);
+    updateAllRegionVisibility(''); return;
+  }
+  try{
+    // Add a cache-busting parameter to prevent the browser from using stale data
+    const cacheBust = new Date().getTime();
+    const url = `/api/options/regions?client=${encodeURIComponent(c)}&_=${cacheBust}`;
+    const js = await jfetch(url);
+    
+    const arr = js.regions || [];
+    CLIENT_REGIONS.set(c, arr);
+    const dl = $('regions'); dl.innerHTML='';
+    arr.forEach(r=>{ const o=document.createElement('option'); o.value=r; dl.appendChild(o); });
+    if (!silent){
+      if (!$('st_region').value && arr[0]) $('st_region').value = arr[0];
+      // Note: dl_region was removed, this line will do nothing.
+      if ($('dl_region') && !$('dl_region').value && arr[0]) $('dl_region').value = arr[0];
+      if (!$('pt_region').value && arr[0]) $('pt_region').value = arr[0];
+      if (!$('excel_region').value && arr[0]) $('excel_region').value = arr[0];
+    }
+    updateAllRegionVisibility(c);
+  }catch(e){ if (!silent) console.debug('loadRegionsFor failed:', e?.message||e); }
+}
+
+  function clientHasRegions(c){ return (CLIENT_REGIONS.get(c) || []).length > 0; }
+
+  function updateAllRegionVisibility(client){
+    const has = clientHasRegions(client);
+    setRegionVisibility('overview', has);
+    setRegionVisibility('stats', has);
+    setRegionVisibility('display', has);
+    setRegionVisibility('pt', has);
+    setRegionVisibility('excel', has);
+  }
+
+  async function ensureRegionCache(client){
+    if (!client || CLIENT_REGIONS.has(client)) return;
+    await loadRegionsFor(client, true);
+  }
+
+  function bindClientChange(id){
+    $(id)?.addEventListener('change', async (e)=>{
+      const v = (e.target.value||'').trim();
+      ['region','st_region','dl_region','pt_region', 'excel_region'].forEach(k=> { if ($(k)) $(k).value = ''; });
+      if (!v) { updateAllRegionVisibility(''); return; }
+      await loadRegionsFor(v);
+    });
+  }
+  ['client', 'admClient', 'st_client', 'dl_client', 'pt_client', 'excel_client'].forEach(bindClientChange);
+
+  // ---------- OVERVIEW FETCH ----------
+  $('btnFetch').onclick = async () => {
+    const subject = ($('subject').value || '').trim();
+    const client = ($('client').value || '').trim();
+    await ensureRegionCache(client);
+    const hasRegions = clientHasRegions(client);
+    const region = hasRegions ? (($('region').value||'').trim()) : "";
+    const hours = parseInt(($('hours').value || '240'), 10);
+    
+    if(!client){ return alert('Client required'); }
+    if(hasRegions && !region){ return alert('Region required for this client'); }
+
+    $('fetchStatus').textContent = 'Status: Working…'; $('fetchStatus').className = 'chip'; $('fetchMsg').textContent = '';
+    try {
+      const body = { client, region, subject_hint: subject, hours };
+      const j = await jfetch('/api/ingest/by-client-region', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (j.ok) {
+        $('fetchStatus').textContent = 'Status: OK'; $('fetchStatus').className = 'chip ok';
+        $('fetchMsg').textContent = (j.mail_subject || '') + '  •  ' + (j.saved_path || '');
+        setStat('stLast', new Date().toLocaleTimeString());
+        // Auto-load into the new excel viewer if the tab is active
+        if ($('tab-excel').classList.contains('active')) {
+          $('excel_client').value = client;
+          await loadRegionsFor(client, true);
+          $('excel_region').value = region;
+          await EXCEL_findSheets();
+        }
+      } else {
+        $('fetchStatus').textContent = 'Status: Not found'; $('fetchStatus').className = 'chip bad';
+        $('fetchMsg').textContent = j.reason || '';
+      }
+    } catch (e) {
+      $('fetchStatus').textContent = 'Status: Failed'; $('fetchStatus').className = 'chip bad';
+      $('fetchMsg').textContent = e.message || 'error';
+    }
+  };
+
+  // ---------- MAILS (MERGED: Filters & Senders Logic) ----------
+  async function loadAllowedSendersIntoDropdown(){
+    try{
+      const data = await jfetch('/api/options/store-public?include_senders=true');
+      const sel = $('senderSel'); if (!sel) return;
+      while (sel.options.length > 1) sel.remove(1);
+      const emails = new Set();
+      for (const meta of Object.values(data||{})){
+        if (meta && typeof meta === 'object'){
+          if (meta.sender) emails.add(meta.sender.trim().toLowerCase());
+          if (meta.regions) {
+            for (const v of Object.values(meta.regions)){
+              if (typeof v === 'string' && v.trim()) emails.add(v.trim().toLowerCase());
+            }
+          }
+        }
+      }
+      Array.from(emails).sort().forEach(s=>{
+        const o=document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o);
+      });
+    }catch(e){ console.debug('loadAllowedSenders failed:', e?.message||e); }
+  }
+
+  function renderMails(items) {
+    const tb = $('mailBody'); tb.innerHTML = '';
+    if (!items || !items.length) {
+      tb.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No recent mails</td></tr>';
+      return;
+    }
+    items.forEach(it => {
+      const tr = document.createElement('tr');
+      const atts = (it.attachments || []).map(a => esc(a)).join('<br>');
+      tr.innerHTML = `<td>${esc(it.subject || '')}</td><td>${esc((it.from_name || '') + (it.from_email ? ' <' + it.from_email + '>' : ''))}</td><td>${esc(it.receivedDateTime || '')}</td><td>${atts}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+
+  async function fetchAndRenderMails(isAutoRefresh=false) {
+    const limit = parseInt(($('limit').value || '10'), 10);
+    const hours = parseInt(($('mailHours').value||'240'),10);
+    const sender = ($('senderSel')?.value||'').trim();
+    const params = new URLSearchParams({ limit, hours, only_with_attachments: 'true' });
+    if (sender) params.set('sender', sender);
+    
+    try {
+      const j = await jfetch('/mail/recent-with-attachments?' + params.toString());
+      const items = j.items || [];
+      const h = JSON.stringify(items);
+      if (isAutoRefresh && h === lastMailHash) return;
+      lastMailHash = h;
+      renderMails(items);
+      setStat('stLast', new Date().toLocaleTimeString());
+    } catch (e) {
+      if (!isAutoRefresh) alert('List mails failed: ' + e.message);
+      else console.debug('Auto-refresh mails failed', e.message);
+    }
+  }
+
+  $('btnList').onclick = () => fetchAndRenderMails(false);
+  
+  let autoMailTimer = null, lastMailHash = '';
+  function startAutoMail() {
+    if (autoMailTimer) return;
+    fetchAndRenderMails(true);
+    autoMailTimer = setInterval(() => fetchAndRenderMails(true), 10000);
+  }
+  function stopAutoMail() { if (autoMailTimer) clearInterval(autoMailTimer); autoMailTimer = null; }
+  $('autoMailChk').addEventListener('change', (e) => { e.target.checked ? startAutoMail() : stopAutoMail(); });
+
+  // ---------- EXCEL VIEWER (NEW LOGIC) ----------
+  async function EXCEL_findSheets() {
+    const client = ($('excel_client').value || '').trim();
+    await ensureRegionCache(client);
+    const hasRegions = clientHasRegions(client);
+    const region = hasRegions ? (($('excel_region').value || '').trim()) : "";
+
+    if (!client) {
+      return showToast('Please select a client.', 'error');
+    }
+    if (hasRegions && !region) {
+      return showToast('Please select a region for this client.', 'error');
+    }
+
+    const btn = $('btnFetchSheets');
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="spin"></i><span>Finding...</span>`;
+
+    const params = new URLSearchParams({ client, region });
+    try {
+      const data = await jfetch(`/api/excel/find-and-list-sheets?${params.toString()}`);
+      const sel = $('excel_workspace');
+      sel.innerHTML = '';
+      if (data.sheets && data.sheets.length > 0) {
+        data.sheets.forEach(name => {
+          const o = document.createElement('option');
+          o.value = name;
+          o.textContent = name;
+          sel.appendChild(o);
+        });
+        showToast(`Found file: ${data.file_found.split(/[\\/]/).pop()}`, 'success');
+        setStat('stSheets', data.sheets.length);
+      } else {
+        sel.innerHTML = '<option value="">No sheets found</option>';
+        showToast('No sheets found in the latest file.', 'info');
+      }
+    } catch (e) {
+      showToast(`Error: ${e.message}`, 'error');
+      const sel = $('excel_workspace');
+      sel.innerHTML = '<option value="">Error finding sheets</option>';
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="search"></i><span>Find Sheets</span>`;
+      lucide.createIcons();
+    }
+  }
+
+  async function EXCEL_loadSheetData() {
+    const sheetName = ($('excel_workspace').value || '').trim();
+    if (!sheetName) {
+      return showToast('Please find and select a sheet to load.', 'error');
+    }
+
+    try {
+      const data = await jfetch('/api/excel/sheet/' + encodeURIComponent(sheetName));
+      const head = $('gridHead'), body = $('gridBody');
+      head.innerHTML = '<tr>' + (data.columns || []).map(c => `<th>${esc(c)}</th>`).join('') + '</tr>';
+      body.innerHTML = '';
+      (data.rows || []).forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = (r || []).map(v => `<td>${v == null ? '' : esc(String(v))}</td>`).join('');
+        body.appendChild(tr);
+      });
+      setStat('stLast', new Date().toLocaleTimeString());
+    } catch (e) {
+      showToast(`Failed to load sheet data: ${e.message}`, 'error');
+      $('gridHead').innerHTML = ''; 
+      $('gridBody').innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Failed to load data</td></tr>`;
+    }
+  }
+
+  $('btnFetchSheets').onclick = EXCEL_findSheets;
+  $('btnLoadSheetData').onclick = EXCEL_loadSheetData;
+
+  // ---------- ADMIN PANEL (MERGED: Senders logic) ----------
+  async function refreshStore() {
+    try {
+      const data = await jfetch('/api/options/store'); // Use admin endpoint
+      $('storeView').textContent = JSON.stringify(data, null, 2);
+      await loadClients();
+    } catch (e) {
+      $('storeView').textContent = 'Failed to load: ' + (e.message || e);
+    }
+  }
+  $('btnAddClient').onclick = async () => {
+    const name = ($('admClient').value || '').trim();
+    const sender = ($('admClientSender').value || '').trim();
+    if(!name) return showToast('Client name is required', 'error');
+    
+    // Using the new, more flexible API endpoint
+    await jfetch('/api/options/client',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, sender}) });
+    $('admClientSender').value='';
+    showToast(`Client '${name}' added/updated.`, 'success');
+    await refreshStore();
+  };
+  $('btnAddRegion').onclick = async () => {
+    const client = ($('admClient').value || '').trim();
+    const region = ($('admRegion').value || '').trim();
+    const sender = ($('admRegionSender').value || '').trim();
+    if(!client||!region||!sender) return showToast('Client, Region, and Region Sender are all required.', 'error');
+    await jfetch('/api/options/region',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({client, region, sender}) });
+    $('admRegionSender').value='';
+    showToast(`Region '${region}' added to '${client}'.`, 'success');
+    await refreshStore();
+  };
+  $('btnDelClient').onclick = async () => {
+    const client = ($('admClient').value || '').trim(); if (!client) return showToast('Enter a client to delete.', 'error');
+    if (!confirm(`Are you sure you want to delete the client "${client}" and all its regions? This cannot be undone.`)) return;
+    await jfetch('/api/options/client?client=' + encodeURIComponent(client), { method: 'DELETE' });
+    showToast(`Client '${client}' deleted.`, 'success');
+    await refreshStore();
+  };
+  $('btnDelRegion').onclick = async () => {
+    const client = ($('admClient').value || '').trim(); const region = ($('admRegion').value || '').trim();
+    if (!client || !region) return showToast('Enter both a client and region to delete.', 'error');
+    if (!confirm(`Are you sure you want to delete region "${region}" from client "${client}"?`)) return;
+    await jfetch(`/api/options/region?client=${encodeURIComponent(client)}&region=${encodeURIComponent(region)}`, { method: 'DELETE' });
+    showToast(`Region '${region}' from '${client}' deleted.`, 'success');
+    await refreshStore();
+  };
+  $('btnReload').onclick = refreshStore;
+  
+  $('btnCleanupData').onclick = async () => {
+    const monthsInput = $('admCleanupMonths');
+    const months = parseInt(monthsInput.value, 10);
+
+    if (isNaN(months) || months < 1) {
+        showToast('Please enter a valid number of months (1 or more).', 'error');
+        return;
+    }
+
+    const confirmationMessage = `Are you sure you want to permanently delete all data older than ${months} months? This action cannot be undone.`;
+    if (!confirm(confirmationMessage)) {
+        return;
+    }
+
+    const btn = $('btnCleanupData');
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<span>Cleaning up...</span>`;
+
+    try {
+        const url = `/api/admin/cleanup/old-data?months=${months}`;
+        const result = await jfetch(url, { method: 'POST' });
+        
+        if (result.ok) {
+            showToast(`Cleanup successful! Deleted ${result.deleted_rows} rows.`, 'success');
+        } else {
+            throw new Error(result.reason || 'Cleanup failed with no reason.');
+        }
+    } catch (e) {
+        showToast(`Error: ${e.message}`, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+        lucide.createIcons();
+    }
+  };
+
+  // ---------- STATS ----------
+  let ST_chart = null;
+  let DL_CURRENT_COMBO = null;
+  function getThemeColors() {
+    const styles = getComputedStyle(document.documentElement);
+    return {
+      text: styles.getPropertyValue('--text-secondary').trim(),
+      grid: styles.getPropertyValue('--border-primary').trim(),
+      bg: `rgba(${getComputedStyle(document.body).getPropertyValue('--accent-green').replace(/[^\d,]/g, '')}, 0.25)`,
+      border: styles.getPropertyValue('--accent-green').trim(),
+      hoverBg: `rgba(${getComputedStyle(document.body).getPropertyValue('--accent-green').replace(/[^\d,]/g, '')}, 0.35)`,
+    };
+  }
+  function ST_setRangeBadge(from, to) { $('st_range').textContent = (from && to) ? `${from} → ${to}` : '—'; }
+  function ST_buildChart(labels, values, overallAvg) {
+    const ctx = $('st_chart').getContext('2d');
+    if (ST_chart) ST_chart.destroy();
+    
+    const theme = getThemeColors();
+    const avgLine = {
+      id: 'st_avgLine',
+      afterDatasetsDraw(chart, args, opts) {
+        if (opts.value == null) return;
+        const { ctx, chartArea: { left, right }, scales: { y } } = chart;
+        const ypx = y.getPixelForValue(opts.value);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(left, ypx); ctx.lineTo(right, ypx);
+        ctx.setLineDash([6, 6]); ctx.strokeStyle = theme.border;
+        ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.fillStyle = theme.border;
+        ctx.font = '12px Inter, system-ui';
+        ctx.fillText('Avg: ' + opts.value.toLocaleString(), right - 120, ypx - 6);
+        ctx.restore();
+      }
+    };
+
+    ST_chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels, datasets: [{
+          label: 'Average',
+          data: values,
+          borderWidth: 1.5,
+          borderRadius: 4,
+          backgroundColor: theme.bg,
+          borderColor: theme.border,
+          hoverBackgroundColor: theme.hoverBg
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: { ticks: { color: theme.text }, grid: { display: false } },
+          y: { ticks: { color: theme.text }, beginAtZero: true, grid: { color: theme.grid } }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (c) => `Avg: ${Number(c.parsed.y).toLocaleString()}` } }
+        }
+      },
+      plugins: [{ ...avgLine, value: overallAvg }]
+    });
+  }
+  function ST_fillParameterList(byParam){
+    const sel = $('st_parameter');
+    while (sel.options.length>1) sel.remove(1);
+    Object.keys(byParam||{}).sort().forEach(p=>{
+      const o=document.createElement('option'); o.value=p; o.textContent=p; sel.appendChild(o);
+    });
+  }
+  function ST_extract(resp, basis, n, parameter){
+    const byP = resp.by_parameter || {}; let pick = parameter || Object.keys(byP)[0];
+    if (!pick) return {labels:[],values:[],overall:null, table:[], pick:null};
+    const blkKey = basis==='days' ? `${n}d` : `${n}m`;
+    const rollKey = basis==='days' ? `rolling_${n}d` : `rolling_${n}m`;
+    const blk = (byP[pick]||{})[blkKey] || {};
+    const roll = (byP[pick]||{})[rollKey] || {};
+
+    const labels=[], values=[], table=[];
+    if (basis==='days'){
+      (blk.daily||[]).forEach(d=>{ labels.push(d.date); values.push(Number(d.avg||0)); table.push(d); });
+    } else {
+      (blk.months||[]).forEach(m=>{ labels.push(m.month); values.push(Number(m.avg||0)); table.push(m); });
+    }
+    const overall = (roll.overall_avg!=null) ? Number(Number(roll.overall_avg).toFixed(2)) : null;
+    return {labels, values, overall, table, pick};
+  }
+  async function ST_loadStats() { 
+      const client = ($('st_client').value||'').trim() || ($('client').value||'').trim();
+      await ensureRegionCache(client);
+      const hasRegions = clientHasRegions(client);
+      const region = hasRegions ? (($('st_region').value||'').trim() || ($('region').value||'').trim()) : "";
+      const workspace = ($('st_workspace').value||'').trim();
+      const basis = $('st_basis').value; const n = Number($('st_n').value); const anchor = $('st_anchor').value; const paramSel = $('st_parameter').value;
+      if (!client || (!region && hasRegions) || !workspace) { 
+        showToast('Client, '+(hasRegions?'Region, ':'')+'and Workspace are required.', 'error'); 
+        return; 
+      }
+      
+      const url = `/api/stats?client=${encodeURIComponent(client)}&region=${encodeURIComponent(region)}&workspace=${encodeURIComponent(workspace)}&basis=${basis}&n=${n}&anchor=${anchor}`;
+      const resp = await jfetch(url);
+      const rg = resp.range || {}; ST_setRangeBadge(rg.from, rg.to);
+      if (!resp.ok || !resp.by_parameter || !Object.keys(resp.by_parameter).length) {
+          $('st_empty').style.display='block'; ST_buildChart([],[],null);
+          $('st_avg').textContent='—'; $('st_max').textContent='—'; $('st_min').textContent='—'; $('st_bars').textContent='0';
+          $('st_raw').textContent = JSON.stringify(resp,null,2); return;
+      }
+      $('st_empty').style.display='none';
+      ST_fillParameterList(resp.by_parameter);
+      $('st_parameter').value = paramSel;
+      const {labels, values, overall, table, pick} = ST_extract(resp, basis, n, paramSel);
+      const avg = values.length ? (values.reduce((a,b)=>a+b,0)/values.length) : null;
+      const vmax = values.length ? Math.max(...values) : null;
+      const vmin = values.length ? Math.min(...values) : null;
+      $('st_avg').textContent = avg!=null ? avg.toLocaleString(undefined,{maximumFractionDigits:2}) : '—';
+      $('st_max').textContent = vmax!=null ? vmax.toLocaleString() : '—';
+      $('st_min').textContent = vmin!=null ? vmin.toLocaleString() : '—';
+      $('st_bars').textContent = values.length;
+      ST_buildChart(labels, values, avg!=null? Number(avg.toFixed(2)) : null);
+      $('st_raw').textContent = JSON.stringify({ client, region, workspace, basis, n, anchor, parameter: pick, series: table, overall_avg: avg }, null, 2);
+  }
+  function ST_tryPrefill() {
+    if (!$('st_client').value) $('st_client').value = ($('client').value || '').trim();
+    if (!$('st_region').value) $('st_region').value = ($('region').value || '').trim();
+  }
+  document.getElementById('st_basis').addEventListener('change', () => {
+    const basis = $('st_basis').value; $('st_n_label').textContent = basis === 'days' ? '# Days' : '# Months';
+    const sel = $('st_n'); sel.innerHTML = '';
+    const maxN = basis === 'days' ? 7 : 6;
+    for (let i = 1; i <= maxN; i++) { const o = document.createElement('option'); o.value = i; o.textContent = i; sel.appendChild(o); }
+    sel.value = basis === 'days' ? '3' : '2';
+  });
+  $('st_parameter').addEventListener('change', ST_loadStats);
+  $('st_btnLoad').addEventListener('click', ST_loadStats);
+
+  // ============== AUTO-CYCLE FOR LIVE DISPLAY (Database-driven) ==============
+  let autoCycleTimer = null;
+  let currentCycleIndex = 0;
+  let cycleCombinations = [];
+
+  async function loadCycleCombinationsFromDB() {
+      try {
+          const workspaceFilter = localStorage.getItem('autoCycleWorkspaceFilter') || '';
+          const url = workspaceFilter 
+              ? `/api/auto-cycle/combinations?workspace_filter=${encodeURIComponent(workspaceFilter)}`
+              : '/api/auto-cycle/combinations';
+          
+          const response = await jfetch(url);
+          
+          if (!response.ok) {
+              showToast('Failed to load combinations from database: ' + (response.error || 'Unknown error'), 'error');
+              return false;
+          }
+          
+          cycleCombinations = response.combinations || [];
+          
+          $('autoCycleCombinations').value = JSON.stringify(cycleCombinations, null, 2);
+          
+          const statusEl = document.createElement('div');
+          statusEl.className = 'note';
+          statusEl.style.marginTop = '0.5rem';
+          statusEl.innerHTML = `<strong>Database:</strong> Found ${cycleCombinations.length} combinations${workspaceFilter ? ` (filtered by workspace: ${workspaceFilter})` : ''}`;
+          
+          const oldStatus = document.querySelector('.db-status');
+          if (oldStatus) oldStatus.remove();
+          
+          statusEl.classList.add('db-status');
+          $('autoCycleCombinations').parentElement.appendChild(statusEl);
+          
+          showToast(`Loaded ${cycleCombinations.length} combinations from database`, 'success');
+          return true;
+          
+      } catch (e) {
+          console.error('Error loading cycle combinations from DB:', e);
+          showToast('Error loading combinations: ' + e.message, 'error');
+          return false;
+      }
+  }
+
+  function saveWorkspaceFilter() {
+      const filter = $('autoCycleWorkspaceFilter')?.value || '';
+      localStorage.setItem('autoCycleWorkspaceFilter', filter);
+  }
+
+  async function startAutoCycle() {
+      if (autoCycleTimer) {
+          stopAutoCycle();
+      }
+      
+      const loaded = await loadCycleCombinationsFromDB();
+      if (!loaded || cycleCombinations.length === 0) {
+          showToast('No combinations available from database. Please ensure data exists.', 'error');
+          $('autoCycleEnabled').checked = false;
+          return;
+      }
+      
+      const interval = parseInt($('autoCycleInterval').value) * 60 * 1000;
+      currentCycleIndex = 0;
+      
+      loadNextCombination();
+      
+      autoCycleTimer = setInterval(async () => {
+          if (currentCycleIndex === 0) {
+              await loadCycleCombinationsFromDB();
+              if (cycleCombinations.length === 0) {
+                  showToast('No combinations found in database. Stopping auto-cycle.', 'error');
+                  stopAutoCycle();
+                  $('autoCycleEnabled').checked = false;
+                  return;
+              }
+          }
+          loadNextCombination();
+      }, interval);
+      
+      $('autoCycleStatus').textContent = `Running (${cycleCombinations.length} combos from DB)`;
+      $('autoCycleStatus').className = 'chip ok';
+      localStorage.setItem('autoCycleEnabled', 'true');
+      
+      showToast(`Auto-cycle started: ${cycleCombinations.length} combinations from database, ${$('autoCycleInterval').value} min interval`, 'success');
+  }
+
+  function stopAutoCycle() {
+      if (autoCycleTimer) {
+          clearInterval(autoCycleTimer);
+          autoCycleTimer = null;
+      }
+      
+      $('autoCycleStatus').textContent = 'Stopped';
+      $('autoCycleStatus').className = 'chip';
+      localStorage.setItem('autoCycleEnabled', 'false');
+  }
+
+  // REPLACE the old loadNextCombination function with this one
+  function loadNextCombination() {
+      if (cycleCombinations.length === 0) return;
+      
+      const combo = cycleCombinations[currentCycleIndex];
+      
+      DL_loadOnce(combo.client, combo.region || "", combo.workspace)
+        .then(() => {
+          DL_CURRENT_COMBO = combo; // Store the currently displayed combo
+          console.log(`Auto-cycle: Loaded ${combo.client} - ${combo.region || 'No Region'} - ${combo.workspace}`);
+          
+          // If we are currently in fullscreen, update the header
+          if (document.fullscreenElement === $('dl_fsRoot')) {
+              DL_updateFullscreenHeader(combo);
+          }
+
+        }).catch(error => {
+            console.error('Auto-cycle load failed:', error);
+        });
+      
+      currentCycleIndex = (currentCycleIndex + 1) % cycleCombinations.length;
+      
+      const nextCombo = cycleCombinations[currentCycleIndex];
+      $('autoCycleStatus').textContent = `Running: ${combo.client}-${combo.region || 'N/A'}-${combo.workspace} (Next: ${nextCombo.client}-${nextCombo.region || 'N/A'}-${nextCombo.workspace})`;
+  }
+
+  async function refreshCombinationsFromDB() {
+      const btn = $('btnRefreshCombinations');
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span>Loading...</span>`;
+      
+      try {
+          const loaded = await loadCycleCombinationsFromDB();
+          if (loaded) {
+              showToast(`Refreshed: ${cycleCombinations.length} combinations from database`, 'success');
+          }
+      } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+          lucide.createIcons();
+      }
+  }
+
+  function testCurrentCombination() {
+      const client = ($('dl_client').value || '').trim();
+      const region = ($('dl_region').value || '').trim();
+      const workspace = ($('dl_workspace').value || '').trim();
+      
+      if (!client || !workspace) {
+          showToast('Please set client and workspace first', 'error');
+          return;
+      }
+      
+      const combo = { client, region, workspace };
+      $('autoCycleCombinations').value = JSON.stringify([combo], null, 2);
+      
+      showToast('Testing current combination (not saved to database)', 'info');
+  }
+
+  $('autoCycleEnabled').addEventListener('change', function(e) {
+      if (e.target.checked) {
+          startAutoCycle();
+      } else {
+          stopAutoCycle();
+      }
+  });
+
+  $('btnRefreshCombinations').addEventListener('click', refreshCombinationsFromDB);
+  $('dl_btnFullscreen').addEventListener('click', async () => {
+      if (!document.fullscreenElement) await DL_enterFullscreen(); else await exitFullscreen();
+  });
+
+  $('autoCycleInterval').addEventListener('change', function() {
+      localStorage.setItem('autoCycleInterval', this.value);
+      if ($('autoCycleEnabled').checked) {
+          stopAutoCycle();
+          startAutoCycle();
+      }
+  });
+
+  if ($('autoCycleWorkspaceFilter')) {
+      $('autoCycleWorkspaceFilter').addEventListener('change', function() {
+          saveWorkspaceFilter();
+          if ($('autoCycleEnabled').checked) {
+              loadCycleCombinationsFromDB();
+          }
+      });
+  }
+
+  async function initializeAutoCycle() {
+      const savedInterval = localStorage.getItem('autoCycleInterval');
+      if (savedInterval) {
+          $('autoCycleInterval').value = savedInterval;
+      }
+      
+      const savedFilter = localStorage.getItem('autoCycleWorkspaceFilter');
+      if (savedFilter && $('autoCycleWorkspaceFilter')) {
+          $('autoCycleWorkspaceFilter').value = savedFilter;
+      }
+      
+      await loadCycleCombinationsFromDB();
+      
+      const savedEnabled = localStorage.getItem('autoCycleEnabled');
+      if (savedEnabled === 'true') {
+          $('autoCycleEnabled').checked = true;
+          startAutoCycle();
+      }
+  }
+
+  // ---------- FULLSCREEN HANDLING ----------
+  
+  function updateFullscreenButtonStates() {
+      const isFullscreen = !!document.fullscreenElement;
+      const icon = isFullscreen ? 'minimize-2' : 'maximize';
+      const text = isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen';
+
+      const dlBtn = $('dl_btnFullscreen');
+      if (dlBtn) dlBtn.innerHTML = `<i data-lucide="${icon}"></i><span>${text}</span>`;
+
+      const excelBtn = $('excel_btnFullscreen');
+      if (excelBtn) excelBtn.innerHTML = `<i data-lucide="${icon}"></i><span>${text}</span>`;
+      
+      lucide.createIcons();
+  }
+
+  document.addEventListener('fullscreenchange', updateFullscreenButtonStates);
+
+  // REPLACE the old DL_enterFullscreen function with this one
+  async function DL_enterFullscreen() {
+    const root = $('dl_fsRoot');
+    // Update the header with the current data before entering fullscreen
+    DL_updateFullscreenHeader(DL_CURRENT_COMBO);
+  
+    if (document.fullscreenElement) return;
+    try { await root.requestFullscreen(); } catch (e) { console.error("Fullscreen failed:", e); }
+  }
+
+  async function EXCEL_enterFullscreen() {
+    const root = $('excel_fsRoot');
+    const client = ($('excel_client').value || 'N/A').trim();
+    const region = ($('excel_region').value || '').trim();
+    const workspace = ($('excel_workspace').value || 'N/A').trim();
+    
+    const contextEl = $('excel_fs_context');
+    if(contextEl) {
+        let headerHTML = `<strong>Client:</strong> ${esc(client)}`;
+        if (region) {
+            headerHTML += ` &nbsp;•&nbsp; <strong>Region:</strong> ${esc(region)}`;
+        }
+        headerHTML += ` &nbsp;•&nbsp; <strong>Workspace:</strong> ${esc(workspace)}`;
+        contextEl.innerHTML = headerHTML;
+    }
+
+    if (document.fullscreenElement) return;
+    try { await root.requestFullscreen(); } catch (e) { console.error("Fullscreen failed:", e); }
+  }
+  
+  async function exitFullscreen() {
+    if (document.fullscreenElement) {
+        try { await document.exitFullscreen(); } catch {}
+    }
+  }
+  
+  $('dl_btnFullscreen').addEventListener('click', async () => {
+    if (!document.fullscreenElement) await DL_enterFullscreen(); else await exitFullscreen();
+  });
+  $('excel_btnFullscreen').addEventListener('click', async () => {
+    if (!document.fullscreenElement) await EXCEL_enterFullscreen(); else await exitFullscreen();
+  });
+  
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.fullscreenElement) {
+      exitFullscreen();
+    }
+  });
+  
+  // ----- DYNAMIC WORKSPACE FINDER (for Stats, Live Display, etc.) -----
+  
+  function DL_updateFullscreenHeader(combo) {
+    const comboData = combo || {};
+    const client = comboData.client || 'N/A';
+    const region = comboData.region || '';
+    const workspace = comboData.workspace || 'N/A';
+
+    const contextEl = $('dl_fs_context');
+    if (contextEl) {
+        let headerHTML = `<strong>Client:</strong> ${esc(client)}`;
+        if (region) {
+            headerHTML += ` &nbsp;•&nbsp; <strong>Region:</strong> ${esc(region)}`;
+        }
+        headerHTML += ` &nbsp;•&nbsp; <strong>Workspace:</strong> ${esc(workspace)}`;
+        contextEl.innerHTML = headerHTML;
+    }
+  }
+
+
+  async function findWorkspacesForPair(clientEl, regionEl, workspaceEl) {
+    const client = clientEl.value.trim();
+    await ensureRegionCache(client);
+    const hasRegions = clientHasRegions(client);
+    const region = hasRegions ? regionEl.value.trim() : "";
+
+    if (!client) {
+        return showToast('Please select a client.', 'error');
+    }
+    if (hasRegions && !region) {
+        return showToast('Please select a region for this client.', 'error');
+    }
+
+    const params = new URLSearchParams({ client, region });
+    try {
+        const data = await jfetch(`/api/auto-cycle/workspaces?${params.toString()}`);
+        workspaceEl.innerHTML = '';
+        if (data.workspaces && data.workspaces.length > 0) {
+            data.workspaces.forEach(name => {
+                const o = document.createElement('option');
+                o.value = name;
+                o.textContent = name;
+                workspaceEl.appendChild(o);
+            });
+            showToast(`Found ${data.count} workspaces.`, 'success');
+        } else {
+            workspaceEl.innerHTML = '<option value="">No workspaces found</option>';
+            showToast('No workspaces found for this client/region in the database.', 'info');
+        }
+    } catch (e) {
+        showToast(`Error finding workspaces: ${e.message}`, 'error');
+        workspaceEl.innerHTML = '<option value="">Error</option>';
+    }
+  }
+  
+  $('btnFindWorkspaces_st').onclick = () => findWorkspacesForPair($('st_client'), $('st_region'), $('st_workspace'));
+  // $('btnFindWorkspaces_dl').onclick = () => findWorkspacesForPair($('dl_client'), $('dl_region'), $('dl_workspace'));
+  $('btnFindWorkspaces_pt').onclick = () => findWorkspacesForPair($('pt_client'), $('pt_region'), $('pt_workspace'));
+  $('pt_btnLoad').onclick = PT_loadOnce;
+
+  let DL_timer = null;
+  function DL_prefillFromOverview(){
+    const c = ($('client')?.value||'').trim();
+    const r = ($('region')?.value||'').trim();
+    if (c && !$('dl_client').value) $('dl_client').value = c;
+    if (r && !$('dl_region').value) $('dl_region').value = r;
+  }
+  function DL_rowHTML(r) { return `<tr><td>${esc(r.parameter)}</td><td><b>${Number(r.value??0).toLocaleString()}</b></td><td>${esc(r.ts_utc||'')}</td><td>${esc(r.sheet_name||'')}</td></tr>`; }
+  async function DL_loadOnce(client, region, workspace) { 
+    const mode = 'aligned'; 
+    
+    // Update the context pills
+    $('dl_client_pill').textContent = client || '—';
+    $('dl_region_pill').textContent = region || 'N/A';
+    $('dl_workspace_pill').textContent = workspace || '—';
+    
+    if (!client || !workspace) { 
+      $('dl_latest').textContent = '—'; 
+      $('dl_count').textContent = '0'; 
+      $('dl_body').innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Waiting for next cycle...</td></tr>`;
+      return; 
+    }
+    
+    const url = `/api/display/latest?client=${encodeURIComponent(client)}&region=${encodeURIComponent(region)}&workspace=${encodeURIComponent(workspace)}&mode=${encodeURIComponent(mode)}`;
+    let data;
+    try { 
+        data = await jfetch(url); 
+        const rows = data.rows || [];
+        $('dl_latest').textContent = data.latest_ts || '—';
+        $('dl_count').textContent = rows.length;
+        $('dl_body').innerHTML = rows.length ? rows.map(r => `<tr><td>${esc(r.parameter)}</td><td><b>${Number(r.value??0).toLocaleString()}</b></td><td>${esc(r.ts_utc||'')}</td><td>${esc(r.sheet_name||'')}</td></tr>`).join('') : `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No data for this combination</td></tr>`;
+    } 
+    catch (e) {
+        $('dl_body').innerHTML = `<tr><td class="bad" colspan="4" style="text-align:center; padding: 2rem;">${esc(e.message)}</td></tr>`;
+        $('dl_latest').textContent = '—'; 
+        $('dl_count').textContent = '0'; 
+        return;
+    }
+}
+  function DL_startAuto() { if (!DL_timer) DL_timer = setInterval(() => { DL_loadOnce().catch(() => {}); }, 10000); }
+  function DL_stopAuto() { if (DL_timer) clearInterval(DL_timer); DL_timer = null; }
+  
+  $('dl_btnLoad').addEventListener('click', DL_loadOnce);
+  $('dl_auto').addEventListener('change', (e) => { if (e.target.checked) { DL_loadOnce(); DL_startAuto(); } else DL_stopAuto(); });
+
+  // ---------- SNAPSHOT BY DATE ----------
+  function PT_prefillFromDisplay(){
+  const c = ($('excel_client')?.value || $('client')?.value || '').trim();
+  if (c && !$('pt_client').value) $('pt_client').value = c;
+  const r = ($('excel_region')?.value || $('region')?.value || '').trim();
+  if (r && !$('pt_region').value) $('pt_region').value = r;
+  if (!$('pt_workspace').value) $('pt_workspace').value = ($('excel_workspace')?.value || '').trim();
+  if (!$('pt_date').value) {
+    const now = new Date();
+    $('pt_date').value = `${now.getUTCFullYear()}-${String(now.getUTCMonth()+1).padStart(2,'0')}-${String(now.getUTCDate()).padStart(2,'0')}`;
+  }
+  updateAllRegionVisibility(($('pt_client').value||'').trim());
+}
+  function PT_rowHTML(r){ return `<tr><td>${esc(r.parameter)}</td><td><b>${(r.value!=null && !isNaN(Number(r.value))) ? Number(r.value).toLocaleString() : esc(r.value??'')}</b></td><td>${esc(r.ts_utc||'')}</td><td>${esc(r.sheet_name||'')}</td></tr>`; }
+  async function PT_loadOnce(){
+    const client = ($('pt_client').value || '').trim();
+    await ensureRegionCache(client);
+    const hasRegions = clientHasRegions(client);
+    const region = hasRegions ? (($('pt_region').value || '').trim()) : "";
+    const workspace = ($('pt_workspace').value || '').trim();
+    const date = ($('pt_date').value||'').trim();
+    const timeSlot = ($('pt_time').value||'').trim();
+    const sheet = ($('pt_sheet').value||'').trim();
+    if (!client || (!region && hasRegions) || !workspace || !date || !timeSlot) { 
+      showToast('Client, '+(hasRegions?'Region, ':'')+'Workspace, Date, and Time slot are required.', 'error');
+      return; 
+    }
+    const params = new URLSearchParams({ client, region, workspace, date, time_slot: timeSlot }); if (sheet) params.append('sheet', sheet);
+    const url = `/api/display/by-date?${params.toString()}`;
+    $('pt_status').textContent = 'Loading…';
+    try{
+      const data = await jfetch(url);
+      const rows = data.rows || [];
+      $('pt_ts').textContent = data.ts || '—'; $('pt_count').textContent = String(rows.length); $('pt_status').textContent = 'OK';
+      $('pt_body').innerHTML = rows.length ? rows.map(PT_rowHTML).join('') : `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No data</td></tr>`;
+    }catch(e){
+      $('pt_status').textContent = 'Error'; $('pt_ts').textContent = '—'; $('pt_count').textContent = '0';
+      $('pt_body').innerHTML = `<tr><td class="bad" colspan="4" style="text-align: center; padding: 2rem;">${esc(e?.message || 'Failed')}</td></tr>`;
+    }
+  }
+  $('pt_btnLoad')?.addEventListener('click', PT_loadOnce);
+
+  // ---------- BOOT & INITIALIZATION ----------
+  async function bootData() {
+  // Clear all user-facing inputs on startup
+  clearInputs([
+      'client', 'region', 
+      'excel_client', 'excel_region', 'excel_workspace',
+      'st_client', 'st_region', 'st_workspace', 'st_parameter',
+      'dl_client', 'dl_region', 'dl_workspace',
+      'pt_client', 'pt_region', 'pt_workspace', 'pt_sheet', 'pt_date'
+  ]);
+
+  await loadClients();
+  await loadAllowedSendersIntoDropdown();
+  setStat('stLast', '—');
+  setStat('stSheets', '—');
+  if ($('autoMailChk')) {
+    $('autoMailChk').checked = true;
+    startAutoMail();
+  }
+  activateTab('overview');
+}
+
+  // Initial setup
+  (() => {
+    show($('roleScreen'), true);
+    show($('app'), false);
+    $('roleBadge').textContent = 'Role: —';
+    lucide.createIcons();
+    connectToNotifications();
+  })();
+  
+  ST_buildChart = ST_buildChart || function(){};
+  ST_extract = ST_extract || function(){ return {labels:[], values:[]}; };
+  ST_fillParameterList = ST_fillParameterList || function(){};
+
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+pandas
+openpyxl
+apscheduler
+sqlalchemy
+requests

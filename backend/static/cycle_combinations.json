@@ -1,0 +1,20 @@
+[
+  {"client": "Citi", "region": "APAC", "workspace": "FED"},
+  {"client": "Citi", "region": "APAC", "workspace": "LIVE"},
+  {"client": "Citi", "region": "APAC", "workspace": "MIG"},
+  {"client": "Citi", "region": "EMEA", "workspace": "FED"},
+  {"client": "Citi", "region": "EMEA", "workspace": "LIVE"},
+  {"client": "Citi", "region": "EMEA", "workspace": "MIG"},
+  {"client": "SBI", "region": null, "workspace": "FED"},
+  {"client": "SBI", "region": null, "workspace": "LIVE"},
+  {"client": "SBI", "region": null, "workspace": "MIG"},
+  {"client": "YES Bank", "region": "INDIA", "workspace": "FED"},
+  {"client": "YES Bank", "region": "INDIA", "workspace": "LIVE"},
+  {"client": "YES Bank", "region": "INDIA", "workspace": "MIG"},
+  {"client": "YES Bank", "region": "PAKISTAN", "workspace": "FED"},
+  {"client": "YES Bank", "region": "PAKISTAN", "workspace": "LIVE"},
+  {"client": "YES Bank", "region": "PAKISTAN", "workspace": "MIG"},
+  {"client": "AXIS", "region": "INDIA", "workspace": "FED"},
+  {"client": "AXIS", "region": "INDIA", "workspace": "LIVE"},
+  {"client": "AXIS", "region": "INDIA", "workspace": "MIG"}
+]

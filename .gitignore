@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Database files
+*.db
+*.sqlite3
+analytics.db
+
+# Generated data files (like Parquet)
+*.parquet
+
+# IDE / Editor folders
+.vscode/
+.idea/
+
+backend/app/data/clients.json
+data/
